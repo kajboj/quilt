@@ -11,34 +11,40 @@ class Point < Struct.new(:x, :y)
   end
 end
 
-def hex(center)
+def hex()
   result = []
-
-  f = -> (y, sa, sb) {
-    sa * SQRT3 * (y + sb * SIZE)
-  }
 
   (SIZE/2..SIZE).each do |row|
     limit = (-SQRT3 * (row - SIZE)).round
     (-limit..limit).each do |col|
-      result << Point.new(center.x + col, center.y + row)
+      result << Point.new(col, row)
     end
   end
 
   (-SIZE/2..SIZE/2).each do |row|
     (-HEIGHT.round..HEIGHT.round).each do |col|
-      result << Point.new(center.x + col, center.y + row)
+      result << Point.new(col, row)
     end
   end
 
   (-SIZE..-SIZE/2).each do |row|
     limit = (SQRT3 * (row + SIZE)).round
     (-limit..limit).each do |col|
-      result << Point.new(center.x + col, center.y + row)
+      result << Point.new(col, row)
     end
   end
 
   result
+end
+
+HEX = hex()
+
+def shift(point, vec)
+  Point.new(point.x+vec.x, point.y+vec.y)
+end
+
+def shift_all(points, vec)
+  points.map { |p| shift(p, vec) }
 end
 
 img = ChunkyPNG::Image.from_file("cat.png")
@@ -58,19 +64,12 @@ end
 
 png = ChunkyPNG::Image.new(width, height, ChunkyPNG::Color::TRANSPARENT)
 
-# width.times do |col|
-#   height.times do |row|
-#     pix = a[col][row]
-#     png[col,row] = ChunkyPNG::Color.rgba(pix.r, pix.g, pix.b, 255)
-#   end
-# end
-
-hex(Point.new(110, 110)).each do |p|
+shift_all(HEX, Point.new(110, 110)).each do |p|
   pix = a[p.x][p.y]
   png[p.x,p.y] = ChunkyPNG::Color.rgba(0, pix.g, pix.b, 255)
 end
 
-hex(Point.new(140, 140)).each do |p|
+shift_all(HEX, Point.new(140, 140)).each do |p|
   pix = a[p.x][p.y]
   png[p.x,p.y] = ChunkyPNG::Color.rgba(pix.r, 0, pix.b, 255)
 end
