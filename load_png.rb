@@ -1,8 +1,10 @@
 require 'chunky_png'
 
 SQRT3 = (3**(1.0/2))
-SIZE = 20
+SIZE = 40
 HEIGHT = SQRT3/2 * SIZE
+SIN60 = SQRT3/2
+COS60 = 0.5
 
 Pix = Struct.new(:r, :g, :b)
 class Point < Struct.new(:x, :y)
@@ -47,6 +49,18 @@ def shift_all(points, vec)
   points.map { |p| shift(p, vec) }
 end
 
+def rotate60(point)
+  x = point.x
+  y = point.y
+  Point.new(
+    (x * COS60 - y * SIN60).floor,
+    (y * COS60 + x * SIN60).floor)
+end
+
+def rotate_all60(points)
+  points.map { |p| rotate60(p) }
+end
+
 img = ChunkyPNG::Image.from_file("cat.png")
 
 height = img.dimension.height
@@ -64,14 +78,21 @@ end
 
 png = ChunkyPNG::Image.new(width, height, ChunkyPNG::Color::TRANSPARENT)
 
-shift_all(HEX, Point.new(110, 110)).each do |p|
+center = Point.new(110, 110)
+
+shift_all(HEX, center).each do |p|
   pix = a[p.x][p.y]
   png[p.x,p.y] = ChunkyPNG::Color.rgba(0, pix.g, pix.b, 255)
 end
 
-shift_all(HEX, Point.new(140, 140)).each do |p|
+shift_all(rotate_all60(HEX), shift(center, Point.new(2*HEIGHT, 0))).each do |p|
   pix = a[p.x][p.y]
   png[p.x,p.y] = ChunkyPNG::Color.rgba(pix.r, 0, pix.b, 255)
+end
+
+shift_all(HEX, shift(center, Point.new(HEIGHT, 1.5*SIZE))).each do |p|
+  pix = a[p.x][p.y]
+  png[p.x,p.y] = ChunkyPNG::Color.rgba(pix.r, pix.g, 0, 255)
 end
 
 png.save('cat1.png')
