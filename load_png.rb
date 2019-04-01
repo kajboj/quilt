@@ -17,7 +17,7 @@ def hex()
   result = []
 
   (SIZE/2..SIZE).each do |row|
-    limit = (-SQRT3 * (row - SIZE)).round
+    limit = (-SQRT3 * (row - SIZE)).floor
     (-limit..limit).each do |col|
       result << Point.new(col, row)
     end
@@ -30,7 +30,33 @@ def hex()
   end
 
   (-SIZE..-SIZE/2).each do |row|
-    limit = (SQRT3 * (row + SIZE)).round
+    limit = (SQRT3 * (row + SIZE)).floor
+    (-limit..limit).each do |col|
+      result << Point.new(col, row)
+    end
+  end
+
+  result
+end
+
+def hex_rotated60()
+  result = []
+
+  (SIZE/2..SIZE).each do |row|
+    limit = (-SQRT3 * (row - SIZE)).floor
+    (-limit..limit).each do |col|
+      result << Point.new(col, row)
+    end
+  end
+
+  (-SIZE/2..SIZE/2).each do |row|
+    (-HEIGHT.round..HEIGHT.round).each do |col|
+      result << Point.new(col, row)
+    end
+  end
+
+  (-SIZE..-SIZE/2).each do |row|
+    limit = (SQRT3 * (row + SIZE)).floor
     (-limit..limit).each do |col|
       result << Point.new(col, row)
     end
@@ -53,12 +79,14 @@ def rotate60(point)
   x = point.x
   y = point.y
   Point.new(
-    (x * COS60 - y * SIN60).floor,
-    (y * COS60 + x * SIN60).floor)
+    (x * COS60 - y * SIN60).round,
+    (y * COS60 + x * SIN60).round)
 end
 
 def rotate_all60(points)
-  points.map { |p| rotate60(p) }
+  points.map do |p|
+    rotate60(p)
+  end
 end
 
 img = ChunkyPNG::Image.from_file("cat.png")
@@ -94,5 +122,8 @@ shift_all(HEX, shift(center, Point.new(HEIGHT, 1.5*SIZE))).each do |p|
   pix = a[p.x][p.y]
   png[p.x,p.y] = ChunkyPNG::Color.rgba(pix.r, pix.g, 0, 255)
 end
+
+puts HEX.size
+puts rotate_all60(HEX).size
 
 png.save('cat1.png')
