@@ -58,24 +58,25 @@ end
 
 def hex_f()
   result = []
-  step1 = V2.new(SQRT3/2, -0.5)
-  step2 = V2.new(SQRT3/2, 0.5)
+  m = 2
+  step1 = V2.new(SQRT3/2/m, -0.5/m)
+  step2 = V2.new(SQRT3/2/m, 0.5/m)
  
   start = V2.new(-HEIGHT, SIZE/2.0) 
-  (SIZE+1).times do |j|
+  (m*SIZE+1).times do |j|
     p = start
-    (2*SIZE+1-j).times do |i|
+    (2*m*SIZE+1-j).times do |i|
       result << p
       p = p.add(step1)
     end
     start = start.add(step2)
   end
 
-  step2 = V2.new(0, 1)
+  step2 = V2.new(0, 1.0/m)
   start = V2.new(-HEIGHT, -SIZE/2.0) 
-  SIZE.times do |j|
+  (m*SIZE).times do |j|
     p = start
-    (SIZE+1+j).times do |i|
+    (m*SIZE+1+j).times do |i|
       result << p
       p = p.add(step1)
     end
@@ -86,7 +87,6 @@ def hex_f()
 end
 
 HEX = hex()
-HEXF = hex_f()
 
 def shift(point, vec)
   V2.new(point.x+vec.x, point.y+vec.y)
@@ -114,6 +114,13 @@ def rotate_all60(points)
   end
 end
 
+HEXF0 = hex_f()
+HEXF1 = rotate_all60(HEXF0)
+HEXF2 = rotate_all60(HEXF1)
+HEXF3 = rotate_all60(HEXF2)
+HEXF4 = rotate_all60(HEXF3)
+HEXF5 = rotate_all60(HEXF4)
+
 img = ChunkyPNG::Image.from_file("cat.png")
 
 height = img.dimension.height
@@ -133,27 +140,23 @@ png = ChunkyPNG::Image.new(width, height, ChunkyPNG::Color::TRANSPARENT)
 
 center = V2.new(110, 110)
 
-shift_all(HEX, center).each do |p|
+shift_all(round_all(HEXF0), center).each do |p|
   pix = a[p.x][p.y]
   png[p.x,p.y] = ChunkyPNG::Color.rgba(0, pix.g, pix.b, 255)
 end
 
-rotated = shift_all(round_all(rotate_all60(HEXF)), shift(center, V2.new(2*HEIGHT, 0)))
-origin = shift_all(round_all(HEXF), center)
+rotated = shift_all(round_all(HEXF1), shift(center, V2.new(0, 2*SIZE)))
+origin = shift_all(round_all(HEXF0), center)
 
 origin.zip(rotated).each do |(o, r)|
   pix = a[o.x][o.y]
   png[r.x,r.y] = ChunkyPNG::Color.rgba(pix.r, 0, pix.b, 255)
 end
 
-# shift_all(round_all(rotate_all60(hex_f())), shift(center, V2.new(2*HEIGHT, 0))).each do |p|
-#   pix = a[p.x][p.y]
-#   png[p.x,p.y] = ChunkyPNG::Color.rgba(pix.r, 0, pix.b, 255)
-# end
-
-shift_all(HEX, shift(center, V2.new(HEIGHT, 1.5*SIZE))).each do |p|
-  pix = a[p.x][p.y]
-  png[p.x,p.y] = ChunkyPNG::Color.rgba(pix.r, pix.g, 0, 255)
+rotated = shift_all(round_all(HEXF2), shift(center, V2.new(0, 4*SIZE)))
+origin.zip(rotated).each do |(o, r)|
+  pix = a[o.x][o.y]
+  png[r.x,r.y] = ChunkyPNG::Color.rgba(pix.r, 0, pix.b, 255)
 end
 
 png.save('cat1.png')
