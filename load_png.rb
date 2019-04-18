@@ -1,7 +1,7 @@
 require 'chunky_png'
 
 SQRT3 = (3**(1.0/2))
-SIZE = 20 
+SIZE = 30
 HEIGHT = SQRT3/2 * SIZE
 SIN60 = SQRT3/2
 COS60 = 0.5
@@ -61,8 +61,8 @@ def hex_f()
   m = 2
   step1 = V2.new(SQRT3/2/m, -0.5/m)
   step2 = V2.new(SQRT3/2/m, 0.5/m)
- 
-  start = V2.new(-HEIGHT, SIZE/2.0) 
+
+  start = V2.new(-HEIGHT, SIZE/2.0)
   (m*SIZE+1).times do |j|
     p = start
     (2*m*SIZE+1-j).times do |i|
@@ -73,7 +73,7 @@ def hex_f()
   end
 
   step2 = V2.new(0, 1.0/m)
-  start = V2.new(-HEIGHT, -SIZE/2.0) 
+  start = V2.new(-HEIGHT, -SIZE/2.0)
   (m*SIZE).times do |j|
     p = start
     (m*SIZE+1+j).times do |i|
@@ -114,49 +114,96 @@ def rotate_all60(points)
   end
 end
 
-HEXF0 = hex_f()
-HEXF1 = rotate_all60(HEXF0)
-HEXF2 = rotate_all60(HEXF1)
-HEXF3 = rotate_all60(HEXF2)
-HEXF4 = rotate_all60(HEXF3)
-HEXF5 = rotate_all60(HEXF4)
+HEXES = []
+HEXES[0] = hex_f()
+HEXES[1] = rotate_all60(HEXES[0])
+HEXES[2] = rotate_all60(HEXES[1])
+HEXES[3] = rotate_all60(HEXES[2])
+HEXES[4] = rotate_all60(HEXES[3])
+HEXES[5] = rotate_all60(HEXES[4])
 
-img = ChunkyPNG::Image.from_file("cat.png")
+def load_png(filename)
+  img = ChunkyPNG::Image.from_file(filename)
 
-height = img.dimension.height
-width  = img.dimension.width
+  height = img.dimension.height
+  width  = img.dimension.width
 
-a = []
+  a = []
 
-width.times do |col|
-  a[col] ||= []
-  height.times do |row|
-    pixel = img[col,row]
-    a[col][row] = Pix.new(ChunkyPNG::Color.r(pixel), ChunkyPNG::Color.g(pixel), ChunkyPNG::Color.b(pixel))
+  width.times do |col|
+    a[col] ||= []
+    height.times do |row|
+      pixel = img[col, row]
+      a[col][row] = Pix.new(ChunkyPNG::Color.r(pixel), ChunkyPNG::Color.g(pixel), ChunkyPNG::Color.b(pixel))
+    end
+  end
+
+  return a, height, width
+end
+
+def to_color(pix)
+  ChunkyPNG::Color.rgba(pix.r, pix.g, pix.b, 255)
+end
+
+def load_hexes(img, center)
+  HEXES.map do |coords|
+    shift_all(round_all(coords), center).map do |p|
+      to_color(img[p.x][p.y])
+    end
   end
 end
 
+def save_hex(hex, img, height, width, center)
+  hex.zip(round_all(shift_all(HEXES[0], center))).each do |(color, p)|
+    if p.x >= 0 && p.x < width && p.y >= 0 && p.y < height
+      img[p.x,p.y] = color
+    end
+  end
+end
+
+def grid(height, width)
+  grid = []
+  row = 0
+  row_index = 0
+  while (row < height + 2*SIZE)
+    col = (row_index % 2) * HEIGHT
+    while (col < width + 2*HEIGHT)
+      grid << V2.new(col, row)
+      col += 2*HEIGHT
+    end
+    row += 1.5*SIZE
+    row_index += 1
+  end
+  grid
+end
+
+a, height, width = load_png("cat.png")
+
+center = V2.new(40, 40)
+
+height = 256
+width = 256
+
+hexes = load_hexes(a, center)
 png = ChunkyPNG::Image.new(width, height, ChunkyPNG::Color::TRANSPARENT)
 
-center = V2.new(110, 110)
-
-shift_all(round_all(HEXF0), center).each do |p|
-  pix = a[p.x][p.y]
-  png[p.x,p.y] = ChunkyPNG::Color.rgba(pix.r, pix.g, pix.b, 255)
+grid(height, width).each.with_index do |center, index|
+  save_hex(hexes[index % 6], png, height, width, center)
 end
 
-rotated = shift_all(round_all(HEXF1), shift(center, V2.new(0, 2*SIZE)))
-origin = shift_all(round_all(HEXF0), center)
 
-origin.zip(rotated).each do |(o, r)|
-  pix = a[o.x][o.y]
-  png[r.x,r.y] = ChunkyPNG::Color.rgba(pix.r, pix.g, pix.b, 255)
-end
-
-rotated = shift_all(round_all(HEXF2), shift(center, V2.new(0, 4*SIZE)))
-origin.zip(rotated).each do |(o, r)|
-  pix = a[o.x][o.y]
-  png[r.x,r.y] = ChunkyPNG::Color.rgba(pix.r, pix.g, pix.b, 255)
-end
+# rotated = shift_all(round_all(HEXES[1]), shift(center, V2.new(0, 2*SIZE)))
+# origin = shift_all(round_all(HEXES[0]), center)
+#
+# origin.zip(rotated).each do |(o, r)|
+#   pix = a[o.x][o.y]
+#   png[r.x,r.y] = to_color(pix)
+# end
+#
+# rotated = shift_all(round_all(HEXES[2]), shift(center, V2.new(0, 4*SIZE)))
+# origin.zip(rotated).each do |(o, r)|
+#   pix = a[o.x][o.y]
+#   png[r.x,r.y] = to_color(pix)
+# end
 
 png.save('cat1.png')
