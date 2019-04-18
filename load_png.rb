@@ -1,7 +1,7 @@
 require 'chunky_png'
 
 SQRT3 = (3**(1.0/2))
-SIZE = 40 
+SIZE = 20 
 HEIGHT = SQRT3/2 * SIZE
 SIN60 = SQRT3/2
 COS60 = 0.5
@@ -142,7 +142,7 @@ center = V2.new(110, 110)
 
 shift_all(round_all(HEXF0), center).each do |p|
   pix = a[p.x][p.y]
-  png[p.x,p.y] = ChunkyPNG::Color.rgba(0, pix.g, pix.b, 255)
+  png[p.x,p.y] = ChunkyPNG::Color.rgba(pix.r, pix.g, pix.b, 255)
 end
 
 rotated = shift_all(round_all(HEXF1), shift(center, V2.new(0, 2*SIZE)))
@@ -150,13 +150,13 @@ origin = shift_all(round_all(HEXF0), center)
 
 origin.zip(rotated).each do |(o, r)|
   pix = a[o.x][o.y]
-  png[r.x,r.y] = ChunkyPNG::Color.rgba(pix.r, 0, pix.b, 255)
+  png[r.x,r.y] = ChunkyPNG::Color.rgba(pix.r, pix.g, pix.b, 255)
 end
 
 rotated = shift_all(round_all(HEXF2), shift(center, V2.new(0, 4*SIZE)))
 origin.zip(rotated).each do |(o, r)|
   pix = a[o.x][o.y]
-  png[r.x,r.y] = ChunkyPNG::Color.rgba(pix.r, 0, pix.b, 255)
+  png[r.x,r.y] = ChunkyPNG::Color.rgba(pix.r, pix.g, pix.b, 255)
 end
 
 png.save('cat1.png')
