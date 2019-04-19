@@ -1,7 +1,7 @@
 require 'chunky_png'
 
 SQRT3 = (3**(1.0/2))
-SIZE = 30
+SIZE = 80
 HEIGHT = SQRT3/2 * SIZE
 SIN60 = SQRT3/2
 COS60 = 0.5
@@ -58,7 +58,7 @@ end
 
 def hex_f()
   result = []
-  m = 2
+  m = 1
   step1 = V2.new(SQRT3/2/m, -0.5/m)
   step2 = V2.new(SQRT3/2/m, 0.5/m)
 
@@ -179,10 +179,10 @@ end
 
 a, height, width = load_png("cat.png")
 
-center = V2.new(40, 40)
+center = V2.new(80, 80)
 
-height = 256
-width = 256
+height = 512
+width = 512
 
 hexes = load_hexes(a, center)
 png = ChunkyPNG::Image.new(width, height, ChunkyPNG::Color::TRANSPARENT)
@@ -190,20 +190,5 @@ png = ChunkyPNG::Image.new(width, height, ChunkyPNG::Color::TRANSPARENT)
 grid(height, width).each.with_index do |center, index|
   save_hex(hexes[index % 6], png, height, width, center)
 end
-
-
-# rotated = shift_all(round_all(HEXES[1]), shift(center, V2.new(0, 2*SIZE)))
-# origin = shift_all(round_all(HEXES[0]), center)
-#
-# origin.zip(rotated).each do |(o, r)|
-#   pix = a[o.x][o.y]
-#   png[r.x,r.y] = to_color(pix)
-# end
-#
-# rotated = shift_all(round_all(HEXES[2]), shift(center, V2.new(0, 4*SIZE)))
-# origin.zip(rotated).each do |(o, r)|
-#   pix = a[o.x][o.y]
-#   png[r.x,r.y] = to_color(pix)
-# end
 
 png.save('cat1.png')
